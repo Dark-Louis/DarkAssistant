@@ -30,6 +30,7 @@ function App() {
           setStep(2);
           createAppDirectory()
             .then(appDir => installAiri(appDir, handleStatus))
+            .then(() => setStep(3))
             .catch(console.error);
         }}>Installer</Button>
       </main>
@@ -40,6 +41,13 @@ function App() {
         <h1 className="text-2xl font-semibold"><Spinner /> Installation principale d'AIRI...</h1>
         {status && <p className="text-sm text-muted-foreground">{status}</p>}
         <Progress value={progress} className="w-64" />
+      </main>
+    );
+
+    case 3: return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-6">
+        <h1 className="text-2xl font-semibold">Installation terminée !</h1>
+        <Button onClick={() => setStep(4)}>Continuer</Button>
       </main>
     );
   }
