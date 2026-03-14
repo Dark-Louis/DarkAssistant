@@ -5,6 +5,42 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
-    "opener:default"
+    "opener:default",
+    "os:default",
+    {
+      "identifier": "fs:allow-exists",
+      "allow": [{ "path": "$HOME/.local/share/DarkLouis/**" }, { "path": "$APPDATA/DarkLouis/**" }]
+    },
+    {
+      "identifier": "http:default",
+      "allow": [{ "url": "https://github.com/**" }, { "url": "https://release-assets.githubusercontent.com/**" }, { "url": "https://objects.githubusercontent.com/**" }]
+    },
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "sh",
+          "cmd": "sh",
+          "args": ["-c", { "validator": ".*" }]
+        },
+        {
+          "name": "cmd",
+          "cmd": "cmd",
+          "args": ["/c", { "validator": ".*" }]
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-mkdir",
+      "allow": [{ "path": "$HOME/.local/share/DarkLouis/**" }, { "path": "$APPDATA/DarkLouis/**" }]
+    },
+    {
+      "identifier": "fs:allow-write-file",
+      "allow": [{ "path": "$TEMP/**" }, { "path": "$HOME/.local/share/DarkLouis/**" }, { "path": "$APPDATA/DarkLouis/**" }]
+    },
+    {
+      "identifier": "fs:allow-remove",
+      "allow": [{ "path": "$TEMP/**" }, { "path": "$HOME/.local/share/DarkLouis/**" }, { "path": "$APPDATA/DarkLouis/**" }]
+    }
   ]
 }
