@@ -81,3 +81,16 @@ export async function installAiri(appDir: string, setStatus: (msg: string) => vo
 
   setStatus("Installation terminée !");
 }
+
+export async function launchAiri(appDir: string): Promise<void> {
+  const os = platform();
+  const airiDir = await join(appDir, "airi");
+
+  if (os === "windows") {
+    const execPath = await join(airiDir, "AIRI.exe");
+    await Command.create("cmd", ["/c", `start "" "${execPath}"`]).execute();
+  } else {
+    const execPath = await join(airiDir, "opt", "AIRI", "airi");
+    await Command.create("sh", ["-c", `"${execPath}" &`]).execute();
+  }
+}

@@ -1,13 +1,24 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Progress } from "@/components/ui/progress";
-import { createAppDirectory, installAiri } from "./install";
+import { createAppDirectory, installAiri, launchAiri } from "./install";
+import { airiGetAll, addCard, getCards } from "./airi-settings";
 
 function App() {
   const [step, setStep] = useState(0);
   const [status, setStatus] = useState("");
   const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    airiGetAll()
+      .then(entries => console.log("[AIRI] All settings:", entries))
+      .catch(e => console.warn("[AIRI] Settings not available yet:", e));
+
+    getCards()
+      .then(cards => console.log("[AIRI] Cards:", cards))
+      .catch(e => console.warn("[AIRI] Cards not available yet:", e));
+  }, []);
 
   const handleStatus = (msg: string) => {
     setStatus(msg);
@@ -19,7 +30,7 @@ function App() {
     case 0: return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-6">
         <h1 className="text-2xl font-semibold">Bienvenue dans le DarkAssistant</h1>
-        <Button onClick={() => setStep(1)}>Continuer</Button>
+        <Button onClick={() => setStep(3)}>Continuer</Button>
       </main>
     );
 
@@ -47,7 +58,36 @@ function App() {
     case 3: return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-6">
         <h1 className="text-2xl font-semibold">Installation terminée !</h1>
-        <Button onClick={() => setStep(4)}>Continuer</Button>
+        <Button onClick={() => {
+          setStep(4);
+          const testCard = {
+            id: "test",
+            name: "Test",
+            version: "1.0.0",
+            description: "Une card de test",
+            greetings: ["Bonjour ! Je suis une card de test."],
+            extensions: {
+              airi: {
+                modules: {
+                  consciousness: { provider: "", model: "" },
+                  speech: { provider: "speech-noop", model: "", voice_id: "" },
+                },
+                agents: {},
+              },
+            },
+          };
+          addCard(testCard)
+            .then(() => createAppDirectory())
+            .then((appDir: string) => launchAiri(appDir))
+            .catch(console.error);
+        }}>Continuer</Button>
+      </main>
+    );
+
+    case 4: return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-6">
+        <h1 className="text-2xl font-semibold">AIRI est lancé !</h1>
+        <p className="text-sm text-muted-foreground">La card "test" a été ajoutée avec succès.</p>
       </main>
     );
   }
