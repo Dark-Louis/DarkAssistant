@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Trash2, FolderX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { platform } from "@tauri-apps/plugin-os";
-import { createAppDirectory, installAiri, launchAiri, checkAiriInstallation } from "./install";
-import { airiGetAll, addCard, getCards } from "./airi-settings";
+import { homeDir, join } from "@tauri-apps/api/path";
+import { remove } from "@tauri-apps/plugin-fs";
+import { createAppDirectory, installAiri, launchAiri, killAiri, checkAiriInstallation } from "./install";
+import { airiGetAll, addCard, getCards, setActiveCardId } from "./airi-settings";
 
 type InstallStepDef = { label: string; match: string; showProgress?: boolean };
 
@@ -26,6 +28,52 @@ function Screen({ children }: { children: React.ReactNode }) {
         {children}
       </div>
     </main>
+  );
+}
+
+async function getAiriInstallDir(): Promise<string> {
+  const home = await homeDir();
+  const os = platform();
+  const base = os === "windows"
+    ? await join(home, "AppData", "Roaming", "DarkLouis", "DarkAssistant", "airi")
+    : await join(home, ".local", "share", "DarkLouis", "DarkAssistant", "airi");
+  return base;
+}
+
+async function getAiriConfigDir(): Promise<string> {
+  const home = await homeDir();
+  const os = platform();
+  return os === "windows"
+    ? await join(home, "AppData", "Roaming", "ai.moeru.airi")
+    : await join(home, ".config", "ai.moeru.airi");
+}
+
+function DebugToolbar() {
+  const handleDeleteInstall = async () => {
+    if (!confirm("Supprimer le dossier d'installation d'AIRI ?")) return;
+    await killAiri();
+    const dir = await getAiriInstallDir();
+    await remove(dir, { recursive: true }).catch(() => {});
+    window.location.reload();
+  };
+
+  const handleDeleteConfig = async () => {
+    if (!confirm("Supprimer le dossier de config d'AIRI ?")) return;
+    await killAiri();
+    const dir = await getAiriConfigDir();
+    await remove(dir, { recursive: true }).catch(() => {});
+    window.location.reload();
+  };
+
+  return (
+    <div className="fixed top-3 right-3 z-50 flex gap-1.5">
+      <Button variant="outline" size="icon" className="size-8" onClick={handleDeleteInstall}>
+        <FolderX className="size-4" />
+      </Button>
+      <Button variant="outline" size="icon" className="size-8" onClick={handleDeleteConfig}>
+        <Trash2 className="size-4" />
+      </Button>
+    </div>
   );
 }
 
@@ -70,7 +118,7 @@ function App() {
     if (idx !== -1) setInstallStep(idx);
   };
 
-  switch (step) {
+  const content = (() => { switch (step) {
     case 0: return (
       <Screen>
         <div className="flex flex-col items-center gap-4 text-center">
@@ -149,7 +197,7 @@ function App() {
                         {s.label}
                       </p>
                       {s.showProgress && (
-                        <Progress value={progress} className="h-1 w-40" />
+                        <Progress value={isCompleted ? 100 : progress} className={cn("h-1 w-40", isCompleted && "[&>[data-slot=progress-indicator]]:bg-muted-foreground")} />
                       )}
                     </div>
                   </div>
@@ -191,7 +239,9 @@ function App() {
                   },
                 },
               };
-              addCard(testCard)
+              killAiri()
+                .then(() => addCard(testCard))
+                .then(() => setActiveCardId(testCard.id))
                 .then(() => createAppDirectory())
                 .then((appDir: string) => launchAiri(appDir))
                 .catch(console.error);
@@ -211,7 +261,14 @@ function App() {
         </div>
       </Screen>
     );
-  }
+  } })();
+
+  return (
+    <>
+      <DebugToolbar />
+      {content}
+    </>
+  );
 }
 
 export default App;
