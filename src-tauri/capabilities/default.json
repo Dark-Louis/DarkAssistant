@@ -35,6 +35,10 @@
       "allow": [{ "path": "$HOME/.local/share/DarkLouis/**" }, { "path": "$APPDATA/DarkLouis/**" }]
     },
     {
+      "identifier": "fs:allow-read-file",
+      "allow": [{ "path": "$HOME/.local/share/DarkLouis/**" }, { "path": "$APPDATA/DarkLouis/**" }]
+    },
+    {
       "identifier": "fs:allow-write-file",
       "allow": [{ "path": "$TEMP/**" }, { "path": "$HOME/.local/share/DarkLouis/**" }, { "path": "$APPDATA/DarkLouis/**" }]
     },

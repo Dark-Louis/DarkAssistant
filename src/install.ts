@@ -1,10 +1,14 @@
-import { mkdir, writeFile, remove, exists } from "@tauri-apps/plugin-fs";
+import { mkdir, writeFile, readFile, remove, exists } from "@tauri-apps/plugin-fs";
 import { homeDir, join, tempDir } from "@tauri-apps/api/path";
 import { platform } from "@tauri-apps/plugin-os";
 import { Command } from "@tauri-apps/plugin-shell";
 import { fetch } from "@tauri-apps/plugin-http";
 
 const AIRI_VERSION = "0.9.0-alpha.14";
+const AIRI_EXEC_HASHES: Record<string, string> = {
+  linux: "84be5d125380d744d76efb166e82ccc56cc5392512ff8d8530c117d72e89d76e",
+  windows: "", // TODO: replace via API call
+};
 const BASE_URL = `https://github.com/moeru-ai/airi/releases/download/v${AIRI_VERSION}`;
 
 const DOWNLOAD_URLS = {
@@ -80,6 +84,37 @@ export async function installAiri(appDir: string, setStatus: (msg: string) => vo
   }
 
   setStatus("Installation terminée !");
+}
+
+async function hashFile(path: string): Promise<string> {
+  const data = await readFile(path);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function getExecPath(airiDir: string, os: string): Promise<string> {
+  return os === "windows"
+    ? join(airiDir, "AIRI.exe")
+    : join(airiDir, "opt", "AIRI", "airi");
+}
+
+export async function checkAiriInstallation(appDir: string): Promise<"missing" | "corrupted" | "ok"> {
+  const os = platform();
+  const airiDir = await join(appDir, "airi");
+  if (!await exists(airiDir)) return "missing";
+
+  const exec = await getExecPath(airiDir, os);
+  if (!await exists(exec)) return "corrupted";
+
+  const expectedHash = AIRI_EXEC_HASHES[os === "windows" ? "windows" : "linux"];
+  if (!expectedHash) return "ok"; // hash non défini, on skip la vérification
+
+  const currentHash = await hashFile(exec);
+  if (currentHash !== expectedHash) return "corrupted";
+
+  return "ok";
 }
 
 export async function launchAiri(appDir: string): Promise<void> {

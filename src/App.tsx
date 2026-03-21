@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Progress } from "@/components/ui/progress";
-import { createAppDirectory, installAiri, launchAiri } from "./install";
+import { createAppDirectory, installAiri, launchAiri, checkAiriInstallation } from "./install";
 import { airiGetAll, addCard, getCards } from "./airi-settings";
 
 function App() {
@@ -18,6 +18,17 @@ function App() {
     getCards()
       .then(cards => console.log("[AIRI] Cards:", cards))
       .catch(e => console.warn("[AIRI] Cards not available yet:", e));
+
+    createAppDirectory()
+      .then(appDir => checkAiriInstallation(appDir))
+      .then(state => {
+        if (state === "ok") setStep(3);
+        else setStep(1);
+      })
+      .catch(e => {
+        console.error("[AIRI] Check failed:", e);
+        setStep(1);
+      });
   }, []);
 
   const handleStatus = (msg: string) => {
@@ -29,8 +40,8 @@ function App() {
   switch (step) {
     case 0: return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-6">
-        <h1 className="text-2xl font-semibold">Bienvenue dans le DarkAssistant</h1>
-        <Button onClick={() => setStep(3)}>Continuer</Button>
+        <h1 className="text-2xl font-semibold">Vérification de l'installation...</h1>
+        <Spinner />
       </main>
     );
 
