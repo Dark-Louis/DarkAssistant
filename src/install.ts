@@ -126,6 +126,6 @@ export async function launchAiri(appDir: string): Promise<void> {
     await Command.create("cmd", ["/c", `start "" "${execPath}"`]).execute();
   } else {
     const execPath = await join(airiDir, "opt", "AIRI", "airi");
-    await Command.create("sh", ["-c", `"${execPath}" &`]).execute();
+    await Command.create("sh", ["-c", `nohup "${execPath}" > /dev/null 2>&1 &`]).execute();
   }
 }
