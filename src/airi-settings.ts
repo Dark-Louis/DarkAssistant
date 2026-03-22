@@ -118,6 +118,13 @@ export async function addCard(card: AiriCard): Promise<void> {
   return setCards([...existing, card]);
 }
 
+/** Replaces an existing card by id, or adds it if not present. */
+export async function upsertCard(card: AiriCard): Promise<void> {
+  const existing = await getCards();
+  const filtered = existing.filter(c => c.id !== card.id);
+  return setCards([...filtered, card]);
+}
+
 export async function getActiveCardId(): Promise<string | null> {
   return airiGet("airi-card-active-id");
 }
