@@ -31,7 +31,26 @@
       ]
     },
     {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        {
+          "name": "sh",
+          "cmd": "sh",
+          "args": ["-c", { "validator": ".*" }]
+        },
+        {
+          "name": "cmd",
+          "cmd": "cmd",
+          "args": ["/c", { "validator": ".*" }]
+        }
+      ]
+    },
+    {
       "identifier": "fs:allow-mkdir",
+      "allow": [{ "path": "$HOME/.local/share/DarkLouis/**" }, { "path": "$APPDATA/DarkLouis/**" }]
+    },
+    {
+      "identifier": "fs:allow-read-file",
       "allow": [{ "path": "$HOME/.local/share/DarkLouis/**" }, { "path": "$APPDATA/DarkLouis/**" }]
     },
     {
